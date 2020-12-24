@@ -1,0 +1,33 @@
+{
+    "name": "Learn Kubernetes",
+    "description": "Kubernetes",
+    "logo": "_images/SalesStack.png",
+    "has_supporting_content": true,
+    "stack_id": "kubernetes-course",
+    "type": "Course",
+    "categories": [
+        "Orchestration"
+    ],
+    "platform": "Kubernetes",
+    "cover": "cover.md",
+    "meta": {
+        "Type": [
+            "Course"
+        ],
+        "Course Duration": [
+            "30 minutes"
+        ]
+    },
+    "deployment_information": {
+        "Project": "",
+        "Deployment Namespace": ""
+    },
+    "commands": [],
+    "display": [
+        {
+            "name": "Developer Dashboard",
+            "url": "##DNS.host##/codeserver",
+            "enabled": true
+        }
+    ]
+}

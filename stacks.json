@@ -1,0 +1,23 @@
+{
+    "title": "Learn Kubernetes",
+    "description": "Kubernetes",
+    "logo": "_images/SalesStack.png",
+    "enabled": true,
+    "category_label": [
+      "Course"
+    ], 
+    "document": "",
+    "stack_id": "kubernetes-course",
+    "type": "Course",
+    "categories": [
+      "Orchestration"
+    ],
+    "is_certified": true,
+    "has_support": true,
+    "has_dataset": false,
+    "has_api": false,
+    "git_url": "https://github.com/operator-playground-io/Kubernetes-tile.git",
+    "git_commit": "62b75ac4a11a0663261a7092ae138d3f2816f0a2",
+    "installTime": "",
+    "isStacksSaved": true
+  }

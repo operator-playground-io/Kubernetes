@@ -1,0 +1,22 @@
+{
+   "name": "Kubernetes-101",
+   "appLayout": "accordion",
+   "appTheme": "g90",
+   "footer": "footer.md",
+   "tutorials": [
+      {
+         "title": "Kubernetes-101",
+         "description": "Kubernetes",
+         "duration": "30 min",
+         "tutorial_name": "kubernetes-101.md"
+      }
+   ],
+   "usefulLinks": [
+      {
+         "title": "",
+         "description": "",
+         "url": ""
+      }
+   ],
+   "support": []
+}
