@@ -657,7 +657,7 @@ kubectl get pods
 
 Output:
 
-![](_images_/replicaset_1.png)
+![](_images/replicaset_1.png)
 
 Notice that there are three pods running with name *nginx-replicaset* appended with a random alphanumeric string, this is done to create unique pod names.
 
