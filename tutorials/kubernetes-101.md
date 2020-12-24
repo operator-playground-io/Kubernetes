@@ -521,6 +521,7 @@ kubectl get pod
 
 Output: 
 
+
 ![pod_1](_images/pod_1.png "pod_1")
 
 To get the IP Address of the pod, execute the below *kubectl get* command with wide option:
