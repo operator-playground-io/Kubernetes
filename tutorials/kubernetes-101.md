@@ -248,10 +248,9 @@ Once your client is configured, you are ready to deploy your application
 
 ### Create and Manage Kubernetes Resources
 
----
 
 **Objects Overview**
-***
+#
 
 Kubernetes objects are entities provided by Kubernetes for deploying, maintaining, and scaling applications either on cloud or on-premise infrastructure. In this section, we’ll be discussing the most common Kubernetes objects that you’ll use in your deployments.
 
@@ -479,7 +478,7 @@ To deploy a pod user generally write a pod manifest file which consists of the c
 
 This process can be illustrated by the below diagram.
 
-![](_attachments/pod.png)
+![pod](_images/pod.png "pod")
 
 Now coming to pod definition, in this section user will create a pod to deploy a nginx container image from docker hub.
 
@@ -522,7 +521,8 @@ kubectl get pod
 
 Output: 
 
-![](_images/pod_1.png)
+
+![pod_1](_images/pod_1.png "pod_1")
 
 To get the IP Address of the pod, execute the below *kubectl get* command with wide option:
 
@@ -699,7 +699,7 @@ For example, if command ```kubectl delete pod nginx-replicaset-6jgh8``` is execu
 
 Sample output is shown below:
 
-![](_attachments/replicaset_2.png)
+![](_images/replicaset_2.png)
 
 There will be one new pod that is created recently.
 
@@ -719,7 +719,7 @@ There should be 2 new pod created and 5 pods in total.
 
 Sample output is shown below:
 
-![](_attachments/replicaset_3.png)
+![](_images/replicaset_3.png)
 
 If traffic to your application is low and only 2 application instances are required to manage traffic. Then scale down the application instances to 2 by executing below command:
 
@@ -735,7 +735,7 @@ kubectl get pod
 
 Now there should be 2 pods in Running state like below output: 
 
-![](_attachments/replicaset_4.png)
+![](_images/replicaset_4.png)
 
 Execute below command to delete replicaset:
 
@@ -753,7 +753,7 @@ Deployments are upgraded and higher version of replication controller. They mana
 
 <strong>Architecture diagram of Deployment is given below</strong>:
 
-![](_attachments/deployment-img.png)
+![](_images/deployment-img.png)
 
 You can manage all three objects using once single Deployment manifest file. Deployment manifest file contains pod definition, number of pod replicas and you also specify preferred upgrade strategy.
 
@@ -823,7 +823,7 @@ kubectl get deployment nginx-deployment
 
 Output:
 
-![](_attachments/deployment_1.png)
+![](_images/deployment_1.png)
 
 From the output you can see that all the pod replicas are running and available.
 
@@ -835,7 +835,7 @@ kubectl get pods -l app=nginx-app
 
 Output:
 
-![](_attachments/deployment_2.png)
+![](_images/deployment_2.png)
 
 Notice that there are three pods running with name *nginx-deployment* appended with a random alphanumeric string, this is done to create unique pod names.
 
@@ -962,7 +962,7 @@ Services discover their respective pods with the help of labels and selectors.
 
 A diagram is shown below to explain the working of service:
 
-![](_attachments/service-architecture.png)
+![](_images/service-architecture.png)
 
 In the above diagram there are two types of application instances *frontend* and *backend*. Frontend pods with label *app: frontend* are grouped using a NodePort type of service because the need to be exposed to outside world. On the other hand, backend pods *app: backend* are grouped using ClusterIP type of service because they do not need to be directly exposed to outside work due to security reasons. In this example there is only one node, if there are multiple nodes then you need to group them using Load Balancer type of service.
 
@@ -1622,7 +1622,7 @@ kubectl delete secret my-secret
 
 In this section, let's take a look at how Kubernetes resources are put in combination to deploy an application so that the users are able to use it. Generally, a developer needs to perform the following steps while deploying an application.
 
-![kubernetes-overview](_attachments/kubernetes_kubernetes-overview.png "kubernetes_kubernetes-overview")
+![kubernetes-overview](_images/kubernetes_kubernetes-overview.png "kubernetes_kubernetes-overview")
 
 1. Create the application with the desired framework and tools.
 2. Create a Dockerfile for the application.
@@ -1729,7 +1729,7 @@ Note the **IP** field from the output. You can use this IP address alongwith the
 
 Output must be like :
 
-![](_attachments/flask-output.png)
+![](_images/flask-output.png)
 
 Now that you have learnt how to deploy an application on Kubernetes, let's cleanup all the resources you created.
 
