@@ -15,10 +15,9 @@ description: Kubernetes
 
 ### Introduction
 
----
 
 **Kuberntes Basics**
-****
+#
 
 Kubernetes is a powerful open-source system, initially developed by Google, for managing containerized applications in a clustered environment. It aims to provide better ways of managing related, distributed components and services across varied infrastructure. It is a platform designed to completely manage the life cycle of containerized applications and services using methods that provide predictability, scalability, and high availability.
 
@@ -38,7 +37,7 @@ Kubernetes is a powerful open-source system, initially developed by Google, for 
 <br/>
 
 **Kubernetes Architecture**
-****
+#
 
 Kubernetes follows a client-server architecture. Master is the controlling machine and has components which operate as the main management contact point for users. Nodes are where the containerized apps run. 
 
@@ -246,8 +245,6 @@ export KUBECONFIG=/home/student/.bluemix/plugins/container-service/clusters/<​
 
 Once your client is configured, you are ready to deploy your application
 
-
----
 
 ### Create and Manage Kubernetes Resources
 
@@ -473,9 +470,1287 @@ kubectl create namespace <​insert-namespace-name-here>
 - Object created inside a particular namespace cannot be accessed/used by objects created in another namespace.
 - To get manage object in particular namespace, *-n <​namespace>* argument is passed in kubectl command. e.g. to get pod from a particular namespace, command will be like ```kubectl get pods -n <​namespace>```
 
+**Lab- Pod**
+#
+
+In simple words a *Pod:* is an Atomic Unit of Scheduling in Kubernetes. Containers are encapsulated inside a pod.
+
+To deploy a pod user generally write a pod manifest file which consists of the container images that user wants to deploy on kubernetes node. These manifests are submitted on API Server on master node, then API Server and scheduler components deploys the pod on a worker node.
+
+This process can be illustrated by the below diagram.
+
+![](_attachments/pod.png)
+
+Now coming to pod definition, in this section user will create a pod to deploy a nginx container image from docker hub.
+
+Execute below command to create a pod manifest file *nginx-pod.yaml*.
+
+```execute
+cat <<'EOF'>nginx-pod.yaml
+# apiVersion of Pod resource is "v1"
+apiVersion: v1
+kind: Pod
+metadata:
+  # Name of pod
+  name: nginx-pod
+  # Labels for pod management
+  labels:
+    app: nginx
+spec:
+  # Containers specifications
+  containers:
+  - name: nginx-container
+    image: nginx:1.17
+    ports:
+    - containerPort: 80
+EOF
+```
+
+Execute below command to create pod object:
+
+```execute
+kubectl create -f nginx-pod.yaml
+```
+
+Output: ```pod/nginx created```
+
+To verify that pod is running, execute below command:
+
+```execute
+kubectl get pod
+```
+
+Output: 
+
+![](_images/pod_1.png)
+
+To get the IP Address of the pod, execute the below *kubectl get* command with wide option:
+
+```execute
+kubectl get pod -o wide
+```
+
+Output:
+
+```
+NAME        READY   STATUS    RESTARTS   AGE   IP               NODE            NOMINATED NODE   READINESS GATES
+nginx-pod   1/1     Running   0          37s   172.30.200.199   10.221.78.188   <none>           <none>
+```
+
+To print all the details of pod, execute the below *kubectl describe* command:
+
+```execute
+kubectl describe pod nginx-pod
+```
+
+In the output this will print all the information including the events of the pod. This information comes handy during troubleshooting.
+
+To get inside the pod using interactive shell, execute below *kubectl exec* command:
+
+```execute
+kubectl exec -it nginx-pod -- /bin/bash
+```
+
+In above command *-it* refers to *interactive shell* and type of shell is bash.
+
+After getting inside the pod, execute below command to see hostname of the pod:
+
+```execute
+hostname
+```
+
+Output:  ```nginx-pod```
+
+To exit from pod interactive shell, execute below command:
+
+```execute
+exit
+```
+
+Delete the pod by executing below command:
+
+```execute
+kubectl delete -f nginx-pod.yaml
+```
+
+Output: ```pod "nginx-pod" deleted```
 
 
----
+**Lab- Replicase**
+#
+
+ReplicaSet is a controller which ensures that a specified number of pods are running at any time to ensure high availability, load balancing and failure tolerance:
+
+1. New pods are launched when they get failed, get deleted or terminated unexpectedly.
+
+2. If there are excess Pods, they get killed and vice versa.
+
+ReplicaSet and Pods are associated with the help of *"labels"* and *"selectors"*:
+
+1. *Labels* are key-value pairs generally attached to Pods. It is a kind of tag given to one or set of related pods together. Label helps to display and manage related pods as a set.
+	
+2. Controllers and Services manage the collection of Pods using *Selectors*. (Pod Labels goes inside Selectors)
+
+Now coming to ReplicaSet definition, in this section you will create a ReplicaSet to deploy and manage pods with a nginx container image from docker hub.
+
+Execute the below command to create a ReplicaSet manifest file:
+
+```execute
+cat <<'EOF'>nginx-replicaset.yaml
+# apiVersion of ReplicaSet is "apps/v1"
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  # Name of ReplicaSet
+  name: nginx-replicaset
+spec:
+  # replicas is the number of pod to be deployed and managed
+  replicas: 3
+  # ReplicaSet uses selector to filter out related pods to be managed
+  selector:
+    matchLabels:
+      app: nginx-app
+  # Pod definition geos inside template
+  template:
+    metadata:
+      name: nginx-pod
+      # labels associated with pod
+      labels:
+        app: nginx-app
+    spec:
+      # pod container specs
+      containers:
+      - name: nginx-container
+        image: nginx:1.17
+        ports:
+        - containerPort: 80
+EOF
+```
+
+To deploy ReplicaSet, execute below command:
+
+```execute
+kubectl create -f nginx-replicaset.yaml
+```
+
+Output: ```replicaset.apps/nginx-replicaset created```
+
+Execute below command to check status of replicaset:
+
+```execute
+kubectl get rs nginx-replicaset
+```
+
+*#Note*: in command *rs* is the abbreviation of replicaset
+
+Output:
+
+![](_images/replicaset_0.png)
+
+From the output you can see that all the pod replicas are in ready state
+
+Execute below command to get list of pods:
+
+```execute
+kubectl get pods
+```
+
+Output:
+
+![](_images_/replicaset_1.png)
+
+Notice that there are three pods running with name *nginx-replicaset* appended with a random alphanumeric string, this is done to create unique pod names.
+
+Assume that there are hundreds of other pods also running. To list out pods with label as *app=nginx-app*, execute the below command:
+
+```execute
+kubectl get pod -l app=nginx-app
+```
+
+*Note:* *-l* flag supports '=', '==', and '!='. You can pass multiple labels also (e.g. *-l* key1=value1, key2=value2, key3!=value3)
+
+To get detailed information of replication, execute below command:
+
+```execute
+kubectl describe rs nginx-replicaset
+```
+
+Output will show information and events for all the pods managed by replicaset.
+
+It's time to perform various test cases on ReplicaSet to understand its advantages.
+
+To test scheduling function of ReplicaSet, delete one of the pod by following below steps:
+
+Copy name of one of the pod from the output of *kubectl get pod -l app=nginx-app* and replace with the <pod-name> in the below command, then past the command in terminal.
+
+```
+kubectl delete pod <​pod-name>
+```
+
+Now ReplicaSet should launch a new pod to maintain the replica count.
+
+You can verify that new pod is created by executing below command and checking the *Age* column of the output, there will be a pod that's created recently:
+
+```execute
+kubectl get pod
+```
+
+For example, if command ```kubectl delete pod nginx-replicaset-6jgh8``` is executed:
+
+Sample output is shown below:
+
+![](_attachments/replicaset_2.png)
+
+There will be one new pod that is created recently.
+
+Suppose that the traffic to your application is increased and 2 extra pod are required to manage traffic. To scale up the application instances from 3 to 5, execute below *kubectl scale* command:
+
+```execute
+kubectl scale rs nginx-replicaset --replicas=5
+```
+
+To see the pods, execute below command:
+
+```execute
+kubectl get pod
+```
+
+There should be 2 new pod created and 5 pods in total.
+
+Sample output is shown below:
+
+![](_attachments/replicaset_3.png)
+
+If traffic to your application is low and only 2 application instances are required to manage traffic. Then scale down the application instances to 2 by executing below command:
+
+```execute
+kubectl scale rs nginx-replicaset --replicas=2
+```
+
+To see the pods, execute below command:
+
+```execute
+kubectl get pod
+```
+
+Now there should be 2 pods in Running state like below output: 
+
+![](_attachments/replicaset_4.png)
+
+Execute below command to delete replicaset:
+
+```execute
+kubectl delete -f nginx-replicaset.yaml
+```
+
+Output: ```replicaset.apps "nginx-replicaset" deleted```
+
+
+**Lab- Deployment**
+#
+
+Deployments are upgraded and higher version of replication controller. They manage the deployment of replica sets which is also an upgraded version of the replication controller. They have the capability to update the replica set and are also capable of rolling back to the previous version.
+
+<strong>Architecture diagram of Deployment is given below</strong>:
+
+![](_attachments/deployment-img.png)
+
+You can manage all three objects using once single Deployment manifest file. Deployment manifest file contains pod definition, number of pod replicas and you also specify preferred upgrade strategy.
+
+<strong>Features of Deployment</strong>:
+
+1. Multiple Replicas: Ensures high availability, load balancing and failure tolerance. If user did not specify replicas count, then by default it is set to 1.
+
+2. Upgrades: Update application instances with no downtime.
+
+3. Rollbacks: If somethings go wrong with current upgrade, then deployment controller allows you to rollback to previous stable version.
+
+4. Scale up or down: You can increase or decrease the application instances based on the load.
+
+5. Pause and Resume: You can pause or resume the deployment process in progress as and when needed. Helps to test and validate new version of the application.
+
+Now coming to Deployment definition, in this section you will create a Deployment to deploy and manage pods with a nginx container image from docker hub.
+
+Execute the below command to create a Deployment manifest file:
+
+```execute
+cat <<'EOF'>nginx-deployment.yaml
+# apiVersion of Deployment is "apps/v1"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Name of Deployment
+  name: nginx-deployment
+spec:
+  # replicas is the number of pod to be deployed and managed
+  replicas: 3
+  # Deployment uses selector to filter out related pods to be managed
+  selector:
+    matchLabels:
+      app: nginx-app
+  # Pod definition geos inside template
+  template:
+    metadata:
+      name: nginx-pod
+      # labels associated with pod
+      labels:
+        app: nginx-app
+    spec:
+      # pod container specs
+      containers:
+      - name: nginx-container
+        image: nginx:1.17
+        ports:
+        - containerPort: 80
+EOF
+```
+
+*#Note:*If you notice the content of Deployment manifest file then it will look similar to the manifest file of ReplicaSet with only one change and that is *kind* which is *Deployment* in this case.
+
+To create Deployment object, execute below command:
+
+```execute
+kubectl create -f nginx-deployment.yaml
+```
+
+Output: ```deployment.apps/nginx-deployment created```
+
+Execute below command to check status of deployment:
+
+```execute
+kubectl get deployment nginx-deployment
+```
+
+Output:
+
+![](_attachments/deployment_1.png)
+
+From the output you can see that all the pod replicas are running and available.
+
+To list the pods which are part of this deployment execute the below command:
+
+```execute
+kubectl get pods -l app=nginx-app
+```
+
+Output:
+
+![](_attachments/deployment_2.png)
+
+Notice that there are three pods running with name *nginx-deployment* appended with a random alphanumeric string, this is done to create unique pod names.
+
+When you create deployment object it will automatically create ReplicaSet object in backend. You can get it by executing below command:
+
+```execute
+kubectl get rs -l app=nginx-app
+```
+
+To print detailed output of deployment, execute *kubectl describe* command given below:
+
+```execute
+kubectl describe deployment nginx-deployment
+```
+
+Notice that there is a field *StrategyType* which is the field for updateStrategy. As it is not mentioned in deployment manifest file, by default it is set *RollingUpdate*. Also, you can see the list of events at the end.
+
+<strong>Test the use cases of Deployment:</strong>
+
+<strong>Update Strategies:</strong>
+
+Suppose you are updating application from version A to version B, then there are different types of deployment strategies you can use:
+
+1. <strong>Recreate</strong>: Shuts down version A and then deploy version B, using this strategy there will be downtime of the service.
+
+2. <strong>RollingUpdate</strong>: This is the *default* updating strategy in kubernetes. It rolls out the update of application by replacing instances one after the other until all the updated instances are successfully rolled out.
+
+3. <strong>Canary</strong>: This deployment strategy consists of gradually shifting production traffic from version A to version B. Suppose there are 5 instances of version A running inside your cluster and you do not want to upgrade all at one because you want to test version B. So, you upgrade 2 instances of version A to version B and after testing new version you completely replace version A to version B.
+
+4. <strong>Blue / Green</strong>: Using this strategy version B which is *Green* is deployed alongside the version A which is *Blue* with exactly same number of instances. After testing the new version of deployment, traffic is switched from version A to version B at loadbalancer level. Advantage is instant rollout and rollback.
+
+<strong>Update Deployment:</strong>
+
+Currently the version of container image is 1.17. You can update the container image version to 1.18 by executing below *kubectl set* command with *--record* option to checkpoint the current state of deployment, this is useful if rollback is needed later due to any problem:
+
+```execute
+kubectl set image deployment nginx-deployment nginx-container=nginx:1.18 --record
+```
+
+This will set image field of nginx-container in the deployment nginx-deployment and rollout the update.
+
+Output: ```deployment.extensions/nginx-deployment image updated```
+
+Check the rollout status of deployment by executing below command:
+
+```execute
+kubectl rollout status deployment/nginx-deployment
+```
+
+Output: ```deployment "nginx-deployment" successfully rolled out```
+
+Check the status of deployment by executing below command:
+
+```execute
+kubectl get deployment nginx-deployment
+```
+
+Get detailed information about the deployment by executing below command:
+
+```execute
+kubectl describe deployment nginx-deployment
+```
+
+In the output you can see that the image version is updated to 1.18 which was 1.17 previously
+
+Check the updated pods by executing below command:
+
+```execute
+kubectl get pods -l app=nginx-app
+```
+
+<strong>Rollback Deployment:</strong>
+
+Suppose that for some reason the update did not meet expectations and you want to rollback to previous deployment and because you had set the *--record* option which maintain history of deployment updates, you can execute the given *kubectl rollout undo* command to get back to previous deployment:
+
+```execute
+kubectl rollout undo deployment nginx-deployment
+```
+
+Verify the rollback by executing below command:
+
+```execute
+kubectl describe deployment nginx-deployment
+```
+
+Notice that the image version of nginx-container is now changed to 1.17 as before.
+
+<strong>Delete Deployment</strong>
+
+Execute below command to delete deployment.
+
+```execute
+kubectl delete deployment nginx-deployment
+```
+
+Output: ```deployment.apps "nginx-deployment" deleted```
+
+To verify that all pod associated with deployment are deleted, execute below command:
+
+```execute
+kubectl get pods -l app=nginx-app
+```
+
+Output:  ```No resource found```
+
+
+
+**Lab- Services**
+#
+
+Service is a way of management and grouping of related pods running on cluster. It can be defined as an abstraction on the top of the pod which provides a single IP address and DNS name by which pods can be accessed. With Service, it is very easy to manage load balancing configuration. It helps pods to scale very easily.
+
+A service is a REST object in Kubernetes whose definition can be posted to Kubernetes apiServer on the Kubernetes master to create a new instance.
+
+Services discover their respective pods with the help of labels and selectors.
+
+<strong>Types of Services</strong>:
+
+1. <strong>ClusterIP Service</strong>: It is default type of service in kubernetes. This helps in restricting the service within the cluster. Exposes the Service on a cluster-internal IP. Choosing this value makes the Service only reachable from within the cluster
+
+2. <strong>NodePort Service</strong>: It will expose the service on a static port (nodePort) on the deployed node. The service can be accessed from outside the cluster using the NodeIP:nodePort.
+
+3. <strong>Load Balancer</strong>: It helps to manage traffic across nodes. NodePort and ClusterIP services are created automatically to which the external load balancer will route.
+
+A diagram is shown below to explain the working of service:
+
+![](_attachments/service-architecture.png)
+
+In the above diagram there are two types of application instances *frontend* and *backend*. Frontend pods with label *app: frontend* are grouped using a NodePort type of service because the need to be exposed to outside world. On the other hand, backend pods *app: backend* are grouped using ClusterIP type of service because they do not need to be directly exposed to outside work due to security reasons. In this example there is only one node, if there are multiple nodes then you need to group them using Load Balancer type of service.
+
+In this lab you will learn how to create a service:
+
+First, Execute the below command to create the deployment using the manifest which was created in previous section:
+
+```execute
+kubectl create -f nginx-deployment.yaml
+```
+
+To group the pods created by deployment, create the service object manifest by executing command given below:
+
+```execute
+cat <<'EOF'>nginx-service-nodeport.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  # service will route network requests to the pods with labels same as selector below
+  selector:
+    app: nginx-app
+  type: NodePort
+  ports:
+  - name: service-nodeport
+    port: 80
+    targetPort: 80
+EOF
+```
+
+Below is the description of *ports* field used in the service definition.
+
+<strong>port: </strong>
+Expose the service on the specified port internally within the cluster. That is, the service becomes visible on this port, and will send requests made to this port to the pods selected by the service.
+
+<strong>targetPort: </strong>
+This is the port on the pod that the request gets sent to. Your application needs to be listening for network requests on this port for the service to work.
+
+Execute below command to create the service using the manifest file:
+
+```execute
+kubectl create -f nginx-service-nodeport.yaml
+```
+
+To get list of all the services, execute below command:
+
+```execute
+kubectl get service
+```
+
+To detailed information of the service, execute below command:
+
+```execute
+kubectl describe svc nginx-service
+```
+
+Use the nodeport number alongwith **##SSH.host##** in the browser to access the application. Example if your nodeport number is **32145**, the URL will be **##SSH.host##:32145**.
+
+Output must be the welcome page of the Nginx server.
+![](_images/nginx-output.png)
+
+To delete service, execute below command:
+
+```execute
+kubectl delete service nginx-service
+```
+
+Output: ```service "nginx-service" deleted```
+
+To delete deployment, execute below command:
+
+```execute
+kubectl delete deployment nginx-deployment
+```
+
+Output: ```deployment.apps "nginx-deployment" deleted```
+
+
+**Lab- Volumes**
+#
+
+In Kubernetes, a volume can be thought of as a directory which is accessible to the containers in a pod. A volume can be thought of as a mounted directory. It is needed to make the pod stateful. If data needs to persist, volumes are needed. We have different types of volumes in Kubernetes and the type defines how the volume is created and its content.
+
+The concept of volume was present with Docker, however the only issue was that the volume was very much limited to a particular pod. As soon as the life of a pod ended, the volume was also lost. Also, when running Containers together in a Pod it is often necessary to share files between those Containers. The Kubernetes Volume abstraction solves both of these problems.
+
+To use a volume, you have to specify what volumes to provide for the Pod ( in the ```.spec.volumes``` field) and where to mount those into Containers (in the ```.spec.containers[*].volumeMounts``` field).
+
+In this exercise, you will create a hostPath PersistentVolume. Kubernetes supports hostPath for development and testing on a single-node cluster. A hostPath PersistentVolume uses a file or directory on the Node to emulate network-attached storage.
+
+In a production cluster, you would not use hostPath. Instead, a cluster administrator would provision a network resource like a Google Compute Engine persistent disk, an NFS share, or an Amazon Elastic Block Store volume. Cluster administrators can also use StorageClasses to set up dynamic provisioning.
+
+<strong>Create a PersistentVolume:</strong>
+
+Execute the below command to create a PersistentVolume manifest file:
+
+```execute
+cat <<'EOF'>persistent-volume.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+EOF
+```
+
+The configuration file specifies that the volume is at /mnt/data on the cluster’s Node. The configuration also specifies a size of 1 gibibytes and an access mode of ReadWriteOnce, which means the volume can be mounted as read-write by a single Node. It defines the StorageClass name manual for the PersistentVolume, which will be used to bind PersistentVolumeClaim requests to this PersistentVolume.
+
+Create the PersistentVolume object by executing below command:
+
+```execute
+kubectl create -f persistent-volume.yaml
+```
+
+View information about the PersistentVolume by executing below command:
+
+```execute
+kubectl get pv pv-volume
+```
+
+The output shows that the PersistentVolume has a STATUS of Available. This means it has not yet been bound to a PersistentVolumeClaim.
+
+```
+NAME        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+pv-volume   1Gi        RWO            Retain           Available           manual                  9s
+```
+
+<strong>Create a PersistentVolumeClaim:</strong>
+
+The next step is to create a PersistentVolumeClaim. Pods use PersistentVolumeClaims to request physical storage. In this exercise, you will create a PersistentVolumeClaim that requests a volume of at least 1 gibibytes that can provide accessMode of ReadWriteOnce.
+
+Execute the below command to create a PersistentVolumeClaim manifest file:
+
+```execute
+cat <<'EOF'>persistent-volume-claim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+```
+
+Create the PersistentVolumeClaim by executing below command:
+
+```execute
+kubectl create -f persistent-volume-claim.yaml
+```
+
+After you create the PersistentVolumeClaim, the Kubernetes control plane looks for a PersistentVolume that satisfies the claim’s requirements. If the control plane finds a suitable PersistentVolume with the same StorageClass, it binds the claim to the volume.
+
+Look again at the PersistentVolume (PV) by executing below command:
+
+```execute
+kubectl get pv pv-volume
+```
+
+Now the output shows a STATUS of Bound.
+
+```
+NAME        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM              STORAGECLASS   REASON   AGE
+pv-volume   1Gi        RWO            Retain           Bound    default/pv-claim   manual                  51s
+```
+
+Look at the PersistentVolumeClaim (PVC) by executing below command:
+
+```execute
+kubectl get pvc pv-claim
+```
+
+The output shows that the PersistentVolumeClaim is bound to your PersistentVolume, task-pv-volume.
+
+```
+NAME       STATUS   VOLUME      CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+pv-claim   Bound    pv-volume   1Gi        RWO            manual         33s
+```
+
+Create a Pod
+The next step is to create a Pod that uses your PersistentVolumeClaim as a volume.
+
+Here is the configuration file for the Pod:
+
+```execute
+cat <<'EOF'>pod-with-pv.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-pv
+spec:
+  volumes:
+  - name: pv-storage
+    persistentVolumeClaim:
+      claimName: pv-claim
+  containers:
+    - name: pv-container
+      image: nginx:1.17
+      ports:
+      - containerPort: 80
+        name: "http-server"
+      volumeMounts:
+      - name: pv-storage
+        mountPath: "/test-mount-path/"          
+EOF
+```
+
+Notice that the Pod’s configuration file specifies a PersistentVolumeClaim, but it does not specify a PersistentVolume. From the Pod’s point of view, the claim is a volume.
+
+Create the Pod by executing below command:
+
+```execute
+kubectl create -f pod-with-pv.yaml
+```
+
+Verify that the container in the Pod is running;
+
+```execute
+kubectl get pod pod-with-pv
+```
+
+Get in interactive shell to the container running in your Pod:
+
+```execute
+kubectl exec -it pod-with-pv -- /bin/bash
+```	
+
+Execute below command to create a sample text file named *"hello1.txt"* at mountPath */test-mount-path/*:
+
+```execute
+cat <<'EOF'>/test-mount-path/hello1.txt
+Hello from Pod 1
+EOF
+```
+
+Execute below command get *exit* from container shell:
+
+```execute
+exit
+```
+
+To check if data persist or not, delete the pod by executing below command and then create new pod using the next command:
+
+```execute
+kubectl delete pod pod-with-pv
+```
+
+```execute
+kubectl create -f pod-with-pv.yaml
+```
+
+Get in interactive shell to the container running in your Pod:
+
+```execute
+kubectl exec -it pod-with-pv -- /bin/bash
+```	
+
+Execute below command to change directory to mountPath:
+
+```execute
+cd test-mount-path/
+```
+
+Execute below command to list files inside the directory:
+
+```execute
+ls
+```
+
+Output: ```hello1.txt```
+
+View content of file:
+
+```execute
+cat hello1.txt
+```
+
+Output: ```Hello from Pod 1```
+
+This proves that data persist at mounted path on persistent volume even if pod gets terminated due to any reason.
+
+Execute below command get *exit* from container shell:
+
+```execute
+exit
+```
+
+<strong>Delete created resources:</strong>
+
+Delete Pod by executing below command:
+
+```execute
+kubectl delete pod pod-with-pv
+```
+
+Output: ```pod "pod-with-pv" deleted```
+
+Delete PersistentVolumeClaim (PVC) by executing below command:
+
+```execute
+kubectl delete pvc pv-claim
+```
+
+Output: ```persistentvolumeclaim "pv-claim" deleted```
+
+Delete PersistentVolume (PV) by executing below command:
+
+```execute
+kubectl delete pv pv-volume
+```
+
+Output: ```persistentvolume "pv-volume" deleted```
+
+**Lab- ConfigMaps**
+#
+
+ConfigMap is a kubernetes object which allows you to separate cofigurations from pod and components. As a result, it keeps container portable and easier to manage by preventing harcoding of configuration data into pod definition.
+
+ConfigMaps store cofiguration data as key-value pairs. It is similar to Secrets but don't contain sensitive information.
+
+ConfigMap helps to keep the application and the configuration loosely coupled. Each time there is a change in the configuration, the pod need not be upgraded or redeployed.
+
+*#Note:* You must create a ConfigMap before referencing it into a Pod definition.
+
+You can write a Pod spec that refers to a ConfigMap and configures the container(s) in that Pod based on the data in the ConfigMap. The Pod and the ConfigMap must be in the same namespace.
+
+ConfigMaps can be consumed as *Environment Variables* or as *Volumes*. In this lab you are going to use configmap to create environment variables.
+
+Here’s an example ConfigMap that has some keys with single values, and other keys where the value looks like a fragment of a configuration file format.
+
+```execute
+cat <<'EOF'>demo-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: game-demo
+data:
+  # property-like keys; each key maps to a simple value
+  player_initial_lives: "3"
+  
+  # file-like keys
+  game.properties: |
+    enemy.types=aliens,monsters
+    player.maximum-lives=5
+    color.good=green
+    color.bad=red
+EOF
+```
+
+Create ConfigMap object by executing below command:
+
+```execute
+kubectl create -f demo-configmap.yaml
+```
+
+Below an example Pod with nginx image that uses values from game-demo configMap for pod configurations:
+
+Execute below command to create pod manifest file:
+
+```execute
+cat <<'EOF'>demo-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-demo-pod
+spec:
+  containers:
+    - name: demo
+      image: nginx:1.17
+      env:
+        # Define environment variables
+		
+        - name: PLAYER_INITIAL_LIVES # Notice that the case is different here
+                                     # from the key name in the ConfigMap. This can be any name.
+          valueFrom:
+            configMapKeyRef:
+              name: game-demo           # The ConfigMap this value comes from.
+              key: player_initial_lives # The key to fetch.
+
+        - name: game_properties
+          valueFrom:
+            configMapKeyRef:
+              name: game-demo
+              key: game.properties
+      # Path to mount configmap
+      volumeMounts:
+      - name: config
+        mountPath: "/config"
+        readOnly: true
+  volumes:
+    # You set volumes at the Pod level, then mount them into containers inside that Pod
+    - name: config
+      configMap:
+        # Provide the name of the ConfigMap you want to mount.
+        name: game-demo
+EOF
+```
+
+Create Pod object by executing below command:
+
+```execute
+kubectl create -f demo-pod.yaml
+```
+
+Execute below command to list config files created inside the mountPath directory:
+
+```execute
+kubectl exec configmap-demo-pod ls /config
+```
+
+A ConfigMap doesn’t differentiate between single line property values and multi-line file-like values. What matters how Pods and other objects consume those values. For this example, defining a volume and mounting it inside the demo container as */config* creates two files:
+
+1. player_initial_lives
+
+2. game.properties
+
+Execute below command to print the value of environment *PLAYER_INITIAL_LIVES*:
+
+```execute
+kubectl exec configmap-demo-pod printenv PLAYER_INITIAL_LIVES
+```
+
+Output: ```3```
+
+Execute below command to print the value of environment *game_properties*:
+
+```execute
+kubectl exec configmap-demo-pod printenv game_properties
+```
+
+Output: 
+
+```
+enemy.types=aliens,monsters
+player.maximum-lives=5
+color.good=green
+color.bad=red
+```
+
+Delete the ConfigMap by executing below command:
+
+```execute
+kubectl delete configmap game-demo
+```
+
+Delete the Pod by executing below command:
+
+```execute
+kubectl delete pod configmap-demo-pod
+```
+
+**Lab- Secrets**
+#
+
+Kubernetes Secrets let you store and manage sensitive information, such as passwords, Auth tokens, and ssh keys. Storing confidential information in a Secret is safer and more flexible than putting it in a Pod definition or in a container image.
+
+*#Note:* You must create a Secret before referencing it into a Pod definition. Maximum size limit of each secret is 1MB.
+
+Secrets get stored inside ETCD database on Kubernetes Master. 
+
+Secrets are consumed in two ways inside Pod definition -
+
+1. Mount as Volumes
+
+2. As Environment Variables
+
+<strong>Create Secret:</strong>
+
+First encrypt the data, usually base64 encoding is used.
+
+Execute below commands to encode username and password details:
+
+```execute
+echo -n "admin" | base64
+```
+
+Output: ```YWRtaW4=```
+
+```execute
+echo -n "P@ssw0rd" | base64
+```
+
+Output: ```UEBzc3cwcmQ=```
+
+Execute below command to create Secret manifest file with encoded base64 data of username and password data:
+
+```execute
+cat <<'EOF'>my-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: UEBzc3cwcmQ=
+EOF
+```
+
+Execute below command to create secret object using manifest file:
+
+```execute
+kubectl create -f my-secret.yaml
+```
+
+Output: ```secret/my-secret created```
+
+Below is the pod manifest file to consume the created secret from *Volume*, execute below command to create the manifest file:
+
+```execute
+cat <<'EOF'>mysecret-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysecret-pod
+spec:
+  containers:
+  - name: secret-container
+    image: nginx:1.17
+    volumeMounts:
+    - name: secret-mount
+      mountPath: "/etc/secret-mount"
+      readOnly: true
+  volumes:
+  - name: secret-mount
+    secret:
+      secretName: my-secret
+EOF
+```
+
+Execute below command to create pod:
+
+```execute
+kubectl create -f mysecret-pod.yaml
+```
+
+Output: ```pod/mysecret-pod created```
+
+Execute below command to list the files inside the mountPath */etc/secret-mount*:
+
+```execute
+kubectl exec mysecret-pod ls /etc/secret-mount 
+```
+
+Output: There are two files created for secrets *password* and *username*.
+
+```
+password
+username
+```
+
+To display the content of secrets where they are mounted, execute below commands:
+
+```execute
+kubectl exec mysecret-pod cat /etc/secret-mount/username
+```
+
+Output: ```admin```
+
+```execute
+kubectl exec mysecret-pod cat /etc/secret-mount/password
+```
+
+Output: ```P@ssw0rd```
+
+Notice that secrets are in decrypted form, because secrets are decrypted when they are consumed inside the pod.
+
+Execute below command to delete pod:
+
+```execute
+kubectl delete pod mysecret-pod
+```
+
+Below is the pod manifest file to consume the created secret from *Environment Variables*, execute below command to create the manifest file:
+
+```execute
+cat <<'EOF'>mysecret-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysecret-pod
+spec:
+  containers:
+  - name: my-container
+    image: nginx:1.17
+    env:
+    # Map "username" key to environment variable SECRET_USERNAME
+    - name: SECRET_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: my-secret
+          key: username
+    # Map "password" key to environment variable SECRET_PASSWORD
+    - name: SECRET_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: my-secret
+          key: password
+EOF
+```
+
+Execute below command to create pod:
+
+```execute
+kubectl create -f mysecret-pod.yaml
+```
+
+Execute below command to check status of pod:
+
+```execute
+kubectl get pod
+```
+
+To list created environment variables, execute below command:
+
+```execute
+kubectl exec mysecret-pod env | grep SECRET
+```
+
+Output:
+
+```
+SECRET_PASSWORD=P@ssw0rd
+SECRET_USERNAME=admin
+```
+
+Secrets are now set as environment variables inside the pod.
+
+To delete the pod, execute below command:
+
+```execute
+kubectl delete pod mysecret-pod
+```
+
+To delete the secret, execute below command:
+
+```execute
+kubectl delete secret my-secret
+```
+
+
+**Lab- Deploying Application on Kubernetes**
+#
+
+In this section, let's take a look at how Kubernetes resources are put in combination to deploy an application so that the users are able to use it. Generally, a developer needs to perform the following steps while deploying an application.
+
+![kubernetes-overview](_attachments/kubernetes_kubernetes-overview.png "kubernetes_kubernetes-overview")
+
+1. Create the application with the desired framework and tools.
+2. Create a Dockerfile for the application.
+3. Build the Dockerfile which produces a Docker container image.
+4. The image is pushed to the docker registry.
+5. Create the necessary resources required for the application like Deployment, Service, Volumes etc onto the cluster.
+6. Expose the Service.
+
+After this, the users are able to access your application. Let's deploy a simple application onto the Kubernetes application.
+
+For hands-on purpose, let's use an already built application image; it is actually a simple **Helloworld Flask application** and deploy this application onto the cluster. For deploying this application, you will need a **Deployment** resource and a **Service** resource to access this application from outside the cluster. Let's create them one by one.
+
+Before starting, let's create a working directory for this application where all the files will be stored.
+
+```execute
+mkdir ${WORKING_DIR}/Flask-app
+cd ${WORKING_DIR}/Flask-app
+```
+
+* Firstly create a namespace using the following command.
+```execute
+kubectl create namespace flask-app
+```
+****
+* Create a **Deployment** with the application image.
+```execute
+cat <<'EOF'>flask-app-deployment.yaml
+# apiVersion of Deployment is "apps/v1"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Name of Deployment
+  name: flask-app-deployment
+spec:
+  # replicas is the number of pod to be deployed and managed
+  replicas: 3
+  # Deployment uses selector to filter out related pods to be managed
+  selector:
+    matchLabels:
+      app: flask-app
+  # Pod definition geos inside template
+  template:
+    metadata:
+      name: flask-app-pod
+      # labels associated with pod
+      labels:
+        app: flask-app
+    spec:
+      # pod container specs
+      containers:
+      - name: flask-app-container
+        image: quay.io/opentestlabs/flask-app:latest
+        ports:
+        - containerPort: 5000
+EOF
+```
+Let's take a look at the code.
+```execute
+cat flask-app-deployment.yaml
+```
+The **Deployment** consists of one container with **image** field having the name of the image to be deployed and a **containerPort** whose value is **5000**. The Pods will listen on this port.
+
+Create this object in `flask-app` namespace.
+```execute
+kubectl create -f flask-app-deployment.yaml -n flask-app
+```
+****
+* Now create a service to access this application from outside the cluster. To access the application from outside, **NodePort** type to **Service** needs to be created.
+```execute
+cat <<'EOF'>flask-app-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+spec:
+  # service will route network requests to the pods with labels same as selector below
+  selector:
+    app: flask-app
+  type: NodePort
+  ports:
+  - name: service-nodeport
+    port: 8000
+    targetPort: 5000
+EOF
+```
+Let's take a look at the code.
+```execute
+cat flask-app-service.yaml
+```
+The **targetPort** field has value of **5000**. This is the port on the pod on which request gets sent. The **Deployment** had a **containerPort** whose value is **5000**. So the requests are sent to **5000** port number. Now let's create the **Service** object. The **selector** field forwards the requests to those Deployments, which has labels as `app: my-flask`.
+Create the Service object.
+```execute
+kubectl create -f flask-app-service.yaml -n flask-app
+```
+To list the services in the **flask-app** namespace, use the following command.
+```execute
+kubectl get svc -n flask-app
+```
+To get a detailed information about the service which you created,
+```execute
+kubectl describe svc flask-service -n flask-app
+```
+Note the **IP** field from the output. You can use this IP address alongwith the assigned nodeport number to access your application. To access this application, use **##SSH.host##** alongwith the nodeport number. If your nodeport number is **32115**, the URL must look like - **##SSH.host##:32115**. Paste the URL into the browser.
+
+Output must be like :
+
+![](_attachments/flask-output.png)
+
+Now that you have learnt how to deploy an application on Kubernetes, let's cleanup all the resources you created.
+
+* Delete the service.
+```execute
+kubectl delete -f flask-app-service.yaml -n flask-app
+```
+* Delete the deployment.
+```execute
+kubectl delete -f flask-app-deployment.yaml -n flask-app
+```
+* Delete the namespace.
+```execute
+kubectl delete namespace flask-app
+```
+* Delete all the files and folder you created.
+```execute
+cd ..
+rm -rf Flask-app
+```
+
 ### Operators
 
 **Operator overview**
