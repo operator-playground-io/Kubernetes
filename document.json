@@ -16,6 +16,9 @@
         ],
         "Course Duration": [
             "30 minutes"
+        ],
+        "Categories": [
+            "Orchestration"
         ]
     },
     "deployment_information": {
