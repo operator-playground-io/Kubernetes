@@ -56,6 +56,8 @@ The diagram shows what the operator does.
 
 The coming sections give 2 practical examples on how Operators are deployed and work-
 
+---
+
 **Lab- Etcd Operator**
 
 The etcd Operator creates and maintains highly-available etcd clusters on Kubernetes, allowing engineers to easily deploy and manage etcd clusters for their applications.
