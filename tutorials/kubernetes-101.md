@@ -74,7 +74,7 @@ Here is how an etcd Operator will work on Kubernetes.
 
 ![Operator_overview](_images/Operator.png)
 
-#### Execute below command to create directory for this operator
+#Execute below command to create directory for this operator
 
 
 ```execute
