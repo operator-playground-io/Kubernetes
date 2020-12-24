@@ -13,29 +13,465 @@ description: Kubernetes
 
 ---
 
+### Introduction
+
+---
+
+**Kuberntes Basics**
+****
+
+Kubernetes is a powerful open-source system, initially developed by Google, for managing containerized applications in a clustered environment. It aims to provide better ways of managing related, distributed components and services across varied infrastructure. It is a platform designed to completely manage the life cycle of containerized applications and services using methods that provide predictability, scalability, and high availability.
+
+<strong>Features of Kubernetes</strong>:
+
+- <strong>Horizontal Scaling</strong>:- It can scale up or down by adding or removing containers as the demand changes.
+- <strong>Self-Healing</strong>:- It can launch new containers on different machines if something fails.
+- <strong>Automated Rollout</strong>:- Kubernetes supports rollouts and rollbacks for the desired state of containerized application.
+- <strong>Service Discovery & Load balancing</strong>:- It can distribute load between the containers.
+- <strong>Secrets & Config Management</strong>:- ConfigMaps are Kubernetes objects that can draw configuration information from other sources such as directories or files. While secrets contain sensitive piece of information. ConfigMaps and Secrets are added to virtual directories called Volumes, which are mounted filesystems that share the lifetime of a Pod which encloses it.
+- <strong>Self-monitoring</strong>:- Kubernetes constantly checks the health of nodes and containers.
+- <strong>Operators</strong>:- Operators are software extensions to Kubernetes that make use of custom resources to manage applications and their components. Operators follow Kubernetes principles, notably the control loop.
 
 
+![Kubernetes_Introduction](_images/Kubernetes_Introduction.png "Kubernetes_Introduction")
+
+<br/>
+
+**Kubernetes Architecture**
+****
+
+Kubernetes follows a client-server architecture. Master is the controlling machine and has components which operate as the main management contact point for users. Nodes are where the containerized apps run. 
+
+Main  components of Kubernetes are explained below:
+
+![Kubernetes_architechture](_images/kubernetes_kubernetes_architechture.png "Kubernetes architecture")
 
 
+**Master Components**
+#
+
+Below are the main components found on the master node:
+
+**- ETCD Cluster** – It is a distributed key value storage which is used to store the Kubernetes cluster data (such as number of pods, their state, namespace,etc). It is a database for Kubernetes data.
+
+**- Kube-API-Server** - Kubernetes API server is the main management point that receives all REST requests for modifications (to pods, services, replication sets/controllers and others). This is the only component that communicates with the etcd cluster, making sure data is stored in etcd. It is the front-end of Kubernetes Cluster.
+
+**- Controller-Manager**-  It is responsible for regulating the state of the cluster and managing the controller processes. For example: The replication controller ensures that the number of replicas defined for a service matches the number currently deployed on the cluster.
+
+**- Scheduler**– It assigns workloads to the nodes as follows- Reads the workload's operating requirements, Analyzes the current infrastructure environment, Places the workload on an acceptable node(s).
+
+**Node Components**
+#
+
+The following are the key components of Node server which are necessary to communicate with Kubernetes master.
+
+**- Docker** - The first requirement of each node is Docker, which is used to run the containers.
+
+**- Kubelet Service** - Kubelet is a service which receives instructions from master component to execute.
+
+**- Kubernetes Proxy Service** - This is a proxy service which runs on each node and helps in making services available to the external host. It is used for maintaining network rules and performing connection forwarding.
+
+**- Pod** - A pod is the most basic unit in Kubernetes. Pods consist of containers that operate closely together. They share a life cycle, and should always be scheduled on the same node. They are managed entirely as a unit and share their environment, volumes, and IP space.
+
+<br/>
+
+**Lab- Prerequisite**
+****
+
+For this labs you will need access to a kubernetes cluster. There is already kubernetes setup in this lab environment. You can use it or you can use your own kubernetes cluster by following procedure given below.
+
+**#Provision a Kubernetes Cluster**
+
+**Note: Execute below steps if you have Kubernetes cluster on the IBM Cloud else skip this section.  Steps of this lab will be executed by default on the Kubernetes setup installed on the attached terminal.**
+
+Login to IBM Cloud and create a Kubernetes cluster if you haven't already. Follow <a href="https://cloud.ibm.com/docs/containers?topic=containers-cs_cluster_tutorial#cs_cluster_tutorial_lesson1" target="_blank">this</a> link for creating a cluster.
+
+Log in to the IBM Cloud CLI . You can either login with Option 1 or Option 2 (If your id is federated): 
+
+**Option 1:** Use this for normal login:
+
+```execute
+ibmcloud login
+```
+Enter your IBM Cloud credentials when prompted. You will find output similar like below. As an example we have used openlabs account details , you need to enter your own registered email id and password:
+
+```
+
+API endpoint: cloud​.ibm.com
+
+Email> openlabs@ibm.com
+
+Password> 
+Authenticating...
+OK
+
+Targeted account Openlabs's Account (80d297103c56406aa783749878e0e465b9bf)
+
+Targeted resource group Default
 
 
+Select a region (or press enter to skip):
+1. au-syd
+2. jp-tok
+3. kr-seo
+4. eu-de
+5. eu-gb
+6. us-south
+7. us-east
+Enter a number> 6
+Targeted region us-south
+
+                      
+API endpoint:      https​://cloud.ibm.com   
+Region:            us-south   
+User:              openlabs@ibm.com 
+Account:           Openlabs's Account (80d297103c56406aa783749878e0e465b9bf)  
+Resource group:    Default   
+CF API endpoint:      
+Org:                  
+Space:                
+
+Tip: If you are managing Cloud Foundry applications and services
+- Use 'ibmcloud target --cf' to target Cloud Foundry org/space interactively, or use 'ibmcloud target --cf-api ENDPOINT -o ORG -s SPACE' to target the org/space.
+- Use 'ibmcloud cf' if you want to run the Cloud Foundry CLI with current IBM Cloud CLI context.
 
 
+New version 0.20.0 is available.
+Release notes: https​://github.com/IBM-Cloud/ibm-cloud-cli-release/releases/tag/v0.20.0
+TIP: use 'ibmcloud config --check-version=false' to disable update check.
+
+```
+
+**Option 2:** 
+
+**Note:** 
+If you have a federated ID, use `"ibmcloud login --sso"` to log in to the IBM Cloud CLI. Use the provided URL in your CLI output to retrieve your one-time passcode. You have a federated ID if login fails without the `--sso` and succeeds with the `--sso` option.
+
+```execute
+ibmcloud login --sso
+```
+Using --sso you will see output similar like below: In this you need to select account and region if you have access to multiple account and regions. As an example we have used openlabs account details , you need to use your own registered email id and password to get `One Time Code`:
+
+```
+ibmcloud login --sso
+API endpoint: https​://cloud.ibm.com
+
+Get One Time Code from https​://identity-3.us-south.iam.cloud.ibm.com/identity/passcode to proceed.
+Open the URL in the default browser? [Y/n]> y
+One Time Code > 
+Authenticating...
+OK
+
+Select an account:
+1. IBM (80d297103c56406aa783749878e0e465b9bf)
+2. IBM (3a4766a7bcab032d4ffc980d360fbf23) <-> 338150
+Enter a number> 1
+Targeted account IBM (80d297103c56406aa783749878e0e465b9bf)
+
+Targeted resource group Default
 
 
+Select a region (or press enter to skip):
+1. au-syd
+2. jp-osa
+3. jp-tok
+4. kr-seo
+5. eu-de
+6. eu-gb
+7. us-south
+8. us-south-test
+9. us-east
+Enter a number> 7
+Targeted region us-south
+
+                      
+API endpoint:      https​://cloud.ibm.com   
+Region:            us-south   
+User:              openlabs@ibm.com   
+Account:           IBM (80d297103c56406aa783749878e0e465b9bf)   
+Resource group:    Default   
+CF API endpoint:      
+Org:                  
+Space:                
+
+Tip: If you are managing Cloud Foundry applications and services
+- Use 'ibmcloud target --cf' to target Cloud Foundry org/space interactively, or use 'ibmcloud target --cf-api ENDPOINT -o ORG -s SPACE' to target the org/space.
+- Use 'ibmcloud cf' if you want to run the Cloud Foundry CLI with current IBM Cloud CLI context.
 
 
+New version 0.20.0 is available.
+Release notes: https​://github.com/IBM-Cloud/ibm-cloud-cli-release/releases/tag/v0.20.0
+TIP: use 'ibmcloud config --check-version=false' to disable update check.
+```
+
+If you have a api key then, use `"ibmcloud login --apikey <api_key>"` to log in to the IBM Cloud CLI
+
+#Copy below command and replace <​CLUSTER.name> with your cluster name and execute it to get your cluster details.
+
+```copycommand
+ibmcloud ks cluster ls | grep  <​CLUSTER.name>
+```
+
+You should see output similar to the following. Wait until `state` value becomes `normal`
+
+```
+Name         ID                     State    Created          Workers   Location   Version       Resource Group Name   Provider
+<​CLUSTER.name>   <​CLUSTER.id>   normal   41 minutes ago   1         <​CLUSTER.dataCenter>      1.14.8_1536   Default               classic
+```
+
+Once the cluster is provisioned, the kubernetes client CLI `kubectl` needs to be configured to talk to the provisioned cluster.
+
+#Copy below command and replcase <​CLUSTER.name> to your cluster name and execute it to get value `KUBECONFIG`
+
+```execute
+ibmcloud ks cluster config --cluster <​CLUSTER.name>
+```
+
+You should see output similar to the following.
+
+```
+OK
+The configuration for <​CLUSTER.name> was downloaded successfully.
+Export environment variables to start using Kubernetes.
+export KUBECONFIG=/home/student/.bluemix/plugins/container-service/clusters/<​CLUSTER.name>/kube-config-<​CLUSTER.dataCenter>-<​CLUSTER.name>.yml
+```
+
+Copy below command and replace <​CLUSTER.name> with you cluster name and <​CLUSTER.dataCenter> with your cluster data center and execute to set the `KUBECONFIG` environment variable based on the output of the command. 
+
+This will make your `kubectl` client point to your new Kubernetes cluster.
+
+```execute
+export KUBECONFIG=/home/student/.bluemix/plugins/container-service/clusters/<​CLUSTER.name>/kube-config-<​CLUSTER.dataCenter>-<​CLUSTER.name>.yml
+```
+
+Once your client is configured, you are ready to deploy your application
 
 
+---
+
+### Create and Manage Kubernetes Resources
+
+---
+
+**Objects Overview**
+***
+
+Kubernetes objects are entities provided by Kubernetes for deploying, maintaining, and scaling applications either on cloud or on-premise infrastructure. In this section, we’ll be discussing the most common Kubernetes objects that you’ll use in your deployments.
+
+- <strong>Namespace</strong>: Namespaces are used to organize objects in a Kubernetes cluster. They enable you to group resources together and perform actions on those resources. One of the use cases can be the creation of different environments (development and production) for your deployed application.
+- <strong>Pods</strong>: A pod is the most basic unit of the Kubernetes cluster. It usually contains one or more running containers. Pods are designed to be ephemeral in nature which means that they can be destroyed at any time.
+- <strong>ReplicaSet</strong>: The ReplicaSet is used to create multiple copies of the same pod in a Kubernetes cluster. It helps ensure that at any given time, the desired number of pods specified are in the running state.
+- <strong>Deployment</strong>: Deployments are Kubernetes objects that are used for managing pods. The first thing a Deployment does when it’s created is to create a replicaset. The replicaset creates pods according to the number specified in the replica option. 
+- <strong>Services</strong>: Service is a way of management and grouping of related pods running on cluster. It can be defined as an abstraction on the top of the pod which provides a single IP address and DNS name by which pods can be accessed. With Service, it is very easy to manage load balancing configuration. It helps pods to scale very easily.
+- <strong>Volumes</strong>: In Kubernetes, a volume can be thought of as a mounted directory. It is needed to make the pod stateful. If data needs to persist, volumes are needed.
+- <strong>ConfigMaps</strong>: ConfigMaps are used to separate configuration data from containers in your Kubernetes application. They offer you the ability to dynamically change data for containers at runtime.
+- <strong>Secrets</strong>: Kubernetes Secrets let you store and manage sensitive information, such as passwords, Auth tokens, and ssh keys. Storing confidential information in a Secret is safer and more flexible than putting it in a Pod definition or in a container image. Secrets are base64 encoded and saved.
+
+Most of the kubernetes objects consists of four top-level required fields, which are:
+
+- <strong>apiVersion</strong>: This refers to the version of Kubernetes. There are several versions, and several objects are introduced with each version. Some common ones are v1, apps/v1, and extensions/v1beta1. You can check out the official Kubernetes documentation for the list of versions.
+
+- <strong>Kind</strong>: This is the type of Kubernetes object. (example: *Pod*, *ReplicaSet*, *Deployment*)
+
+- <strong>Metadata</strong>: The metadata houses information that describes the object briefly. The information in the metadata usually contains the name you want to give the object (pod in our case), the labels, and the annotation. For the labels, you can define as many labels as you want, and you aren’t restricted to words to use as labels.
+
+- <strong>Spec</strong>: The spec section is where you define the desired state of your object. In the case of a pod, it’s where you describe the state of your container.
+
+<strong>*kubectl:*</strong> kubectl is a command line tool which controls the Kubernetes cluster manager. In this lab you are going to use kubectl tool to create and manage kubernetes resources.
+
+General syntax for *kubectl* commands is a followed:
+
+```
+kubectl [COMMAND] [TYPE] [NAME] [flags]
+```
+
+where:
+
+- COMMAND is the operation to be applied on object. For example: create, get, apply, describe, delete, logs.
+- TYPE specifies object type, like Namespace, Pod, Deployment, Service. Resource types are case-insensitive and you can specify the singular, plural, or abbreviated forms.
+- *flags* specifies optional arguments. For example, you can use the -s or --server flags to specify the address and port of the Kubernetes API server.
+
+Basic kubectl commands are given below:
+
+- <strong>create:</strong> Create a resource from a file or from stdin.
+
+  *#Note:* JSON and YAML formats are accepted.
+
+  Examples:
+  
+  *# Create a pod using the data in pod.yaml*
+  ```
+  kubectl create -f ./pod.json
+  ```
+  
+- <strong>get:</strong> List one or more resources and prints a table of the most important information about the specified resources.
+  
+  Examples:
+  
+  *# List all pods in ps output format.*
+  ```
+  kubectl get pods
+  ```
+
+  *# List all pods in ps output format with more information (such as node name).*
+  ```
+  kubectl get pods -o wide
+  ```
+
+  *# List a single pod with specified NAME in ps output format.*
+  ```
+  kubectl get pod mypod
+  ```
+
+- <strong>describe:</strong> Print a detailed description of the selected resources, including related resources such as events or controllers. You may select a single object by name, all objects of that type, provide a name prefix, or label selector.
+  
+  Examples:
+
+  *# Describe a pod*
+  ```
+  kubectl describe pods nginx
+  ```
+
+  *# Describe a pod identified by type and name in "pod.yaml"*
+  ```
+  kubectl describe -f pod.yaml
+  ```
+
+  *# Describe all pods*
+  ```
+  kubectl describe pods
+  ```
+
+  *# Describe pods by label name=myLabel*
+  ```
+  kubectl describe po -l name=myLabel
+  ```
+
+- <strong>delete:</strong> Deletes a resource.
+  
+  Examples:
+  
+  *# Delete a pod using the type and name specified in pod.yaml.*
+  ```
+  kubectl delete -f ./pod.yaml
+  ```
+
+  *# Delete resources from a directory containing yamls*
+  ```
+  kubectl delete -k dir
+  ```
+  
+  *# Delete pod with name "foo"*
+  ```
+  kubectl delete pod foo
+  ```
+
+  *# Delete pods and services with same names "baz" and "foo"*
+  ```
+  kubectl delete pod,service baz foo
+  ```
+
+- <strong>exec:</strong> Execute a command against a container in a pod. If the pod has only one container, the container name is
+optional.
+  
+  Examples:
+  
+  *# Get output from running 'date' command from pod mypod, using the first container by default*
+  ```
+  kubectl exec mypod date
+  ```
+
+  *# Get output from running 'date' command in ruby-container from pod mypod*
+  ```
+  kubectl exec mypod -c ruby-container date
+  ```
+
+  *# Get a shell to container from pod mypod*
+  ```
+  kubectl exec mypod -c ruby-container -it -- /bin/bash
+  ```
+
+- <strong>logs:</strong> Print the logs for a container in a pod or specified resource. If the pod has only one container, the container name is
+optional.
+
+  Examples:
+  
+  *# Return snapshot logs from pod nginx with only one container*
+  ```
+  kubectl logs nginx
+  ```
+
+  *# Return snapshot logs from pod nginx with multi containers*
+  ```
+  kubectl logs nginx --all-containers=true
+  ```
+
+*#Note:* Kubernetes object definitions can be defined in YAML or JSON formats. The file extension .yaml, .yml for YAML and .json for JSON can be used. In this lab you will use YAML format because it is clean and easy to understand compared to JSON format.
 
 
+<br/>
 
+**Lab- Namespace**
+#
 
+Namespaces are intended for use in environments with many users spread across multiple teams, or projects. For clusters with a few to tens of users, you should not need to create or think about namespaces at all. Start using namespaces when you need the features they provide.
 
+Namespaces provide a scope for names. Names of resources need to be unique within a namespace, but not across namespaces. Namespaces can not be nested inside one another and each Kubernetes resource can only be in one namespace.
 
+Namespaces are a way to divide cluster resources between multiple users.
 
+Create namespace using a YAML definition:
 
+Below is the yaml definition to create a namespace with name *my-openlabs-namespace*. Execute below command to create namespace manifest file:
 
+```execute
+cat <<'EOF'>namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  # Name for namespace
+  name: my-openlabs-namespace
+EOF
+```
+
+*# You can run the following command to create a new namespace using yaml definition.*
+
+```execute
+kubectl create -f namespace.yaml
+```
+
+Output:
+
+```namespace/my-openlabs-namespace created```
+
+*# Delete namespace by executing below command:*
+
+```execute
+kubectl delete namespace my-openlabs-namespace
+```
+
+Following commands are used to manage the namespace.
+
+1. ```$ kubectl create –f namespace.yaml```            # Create namespace using yaml definition
+
+2. ```$ kubectl get namespace```                       # List all the namespaces present on cluster
+
+3. ```$ kubectl get namespace <​Namespace name>```      # List namespace having a particular name
+
+4. ```$ kubectl describe namespace <​Namespace name>``` # Describe information about particular namespace
+
+5. ```$ kubectl delete namespace <​Namespace name>```   # Delete a namespace
+
+Alternatively, you can also create namespace using kubectl command without yaml file, you just have to pass namespace name like below:
+
+```
+kubectl create namespace <​insert-namespace-name-here>
+```
+
+*#Note:* 
+- By default kubernetes object are created in *default* namespace. To create object in particular namespace you must pass *namespace: <​namespace-name>* in object *metadata*. 
+- Object created inside a particular namespace cannot be accessed/used by objects created in another namespace.
+- To get manage object in particular namespace, *-n <​namespace>* argument is passed in kubectl command. e.g. to get pod from a particular namespace, command will be like ```kubectl get pods -n <​namespace>```
 
 
 
