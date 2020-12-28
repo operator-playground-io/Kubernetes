@@ -15,8 +15,9 @@ description: Kubernetes
 
 ### Introduction
 
+#
+<p style="font-weight: bold; text-align: center">Kuberntes Basics</p>
 
-**Kuberntes Basics**
 #
 
 Kubernetes is a powerful open-source system, initially developed by Google, for managing containerized applications in a clustered environment. It aims to provide better ways of managing related, distributed components and services across varied infrastructure. It is a platform designed to completely manage the life cycle of containerized applications and services using methods that provide predictability, scalability, and high availability.
@@ -36,7 +37,9 @@ Kubernetes is a powerful open-source system, initially developed by Google, for 
 
 <br/>
 
-**Kubernetes Architecture**
+#
+<p style="font-weight: bold; text-align: center">Kubernetes Architecture</p>
+
 #
 
 Kubernetes follows a client-server architecture. Master is the controlling machine and has components which operate as the main management contact point for users. Nodes are where the containerized apps run. 
@@ -47,7 +50,7 @@ Main  components of Kubernetes are explained below:
 
 
 **Master Components**
-#
+
 
 Below are the main components found on the master node:
 
@@ -60,7 +63,6 @@ Below are the main components found on the master node:
 **- Scheduler**– It assigns workloads to the nodes as follows- Reads the workload's operating requirements, Analyzes the current infrastructure environment, Places the workload on an acceptable node(s).
 
 **Node Components**
-#
 
 The following are the key components of Node server which are necessary to communicate with Kubernetes master.
 
@@ -74,8 +76,10 @@ The following are the key components of Node server which are necessary to commu
 
 <br/>
 
-**Lab- Prerequisite**
-****
+#
+<p style="font-weight: bold; text-align: center">Lab- Prerequisite</p>
+
+#
 
 For this labs you will need access to a kubernetes cluster. There is already kubernetes setup in this lab environment. You can use it or you can use your own kubernetes cluster by following procedure given below.
 
@@ -245,11 +249,13 @@ export KUBECONFIG=/home/student/.bluemix/plugins/container-service/clusters/<​
 
 Once your client is configured, you are ready to deploy your application
 
+<br/>
 
 ### Create and Manage Kubernetes Resources
 
+#
+<p style="font-weight: bold; text-align: center">Objects Overview</p>
 
-**Objects Overview**
 #
 
 Kubernetes objects are entities provided by Kubernetes for deploying, maintaining, and scaling applications either on cloud or on-premise infrastructure. In this section, we’ll be discussing the most common Kubernetes objects that you’ll use in your deployments.
@@ -404,10 +410,11 @@ optional.
 
 *#Note:* Kubernetes object definitions can be defined in YAML or JSON formats. The file extension .yaml, .yml for YAML and .json for JSON can be used. In this lab you will use YAML format because it is clean and easy to understand compared to JSON format.
 
-
 <br/>
 
-**Lab- Namespace**
+#
+<p style="font-weight: bold; text-align: center">Lab- Namespace</p>
+
 #
 
 Namespaces are intended for use in environments with many users spread across multiple teams, or projects. For clusters with a few to tens of users, you should not need to create or think about namespaces at all. Start using namespaces when you need the features they provide.
@@ -469,7 +476,10 @@ kubectl create namespace <​insert-namespace-name-here>
 - Object created inside a particular namespace cannot be accessed/used by objects created in another namespace.
 - To get manage object in particular namespace, *-n <​namespace>* argument is passed in kubectl command. e.g. to get pod from a particular namespace, command will be like ```kubectl get pods -n <​namespace>```
 
-**Lab- Pod**
+#
+
+<p style="font-weight: bold; text-align: center">Lab- Pod</p>
+
 #
 
 In simple words a *Pod:* is an Atomic Unit of Scheduling in Kubernetes. Containers are encapsulated inside a pod.
@@ -575,8 +585,11 @@ kubectl delete -f nginx-pod.yaml
 
 Output: ```pod "nginx-pod" deleted```
 
+<br/>
 
-**Lab- Replicase**
+#
+<p style="font-weight: bold; text-align: center">Lab- Replicase</p>
+
 #
 
 ReplicaSet is a controller which ensures that a specified number of pods are running at any time to ensure high availability, load balancing and failure tolerance:
@@ -745,8 +758,13 @@ kubectl delete -f nginx-replicaset.yaml
 
 Output: ```replicaset.apps "nginx-replicaset" deleted```
 
+<br/>
 
-**Lab- Deployment**
+#
+
+<p style="font-weight: bold; text-align: center">Lab- Deployment</p>
+
+
 #
 
 Deployments are upgraded and higher version of replication controller. They manage the deployment of replica sets which is also an upgraded version of the replication controller. They have the capability to update the replica set and are also capable of rolling back to the previous version.
@@ -941,9 +959,12 @@ kubectl get pods -l app=nginx-app
 
 Output:  ```No resource found```
 
+<br/>
 
+#
 
-**Lab- Services**
+<p style="font-weight: bold; text-align: center">Lab- Services</p>
+
 #
 
 Service is a way of management and grouping of related pods running on cluster. It can be defined as an abstraction on the top of the pod which provides a single IP address and DNS name by which pods can be accessed. With Service, it is very easy to manage load balancing configuration. It helps pods to scale very easily.
@@ -1040,9 +1061,11 @@ kubectl delete deployment nginx-deployment
 ```
 
 Output: ```deployment.apps "nginx-deployment" deleted```
+<br/>
 
+#
+<p style="font-weight: bold; text-align: center">Lab- Volumes</p>
 
-**Lab- Volumes**
 #
 
 In Kubernetes, a volume can be thought of as a directory which is accessible to the containers in a pod. A volume can be thought of as a mounted directory. It is needed to make the pod stateful. If data needs to persist, volumes are needed. We have different types of volumes in Kubernetes and the type defines how the volume is created and its content.
@@ -1289,7 +1312,11 @@ kubectl delete pv pv-volume
 
 Output: ```persistentvolume "pv-volume" deleted```
 
-**Lab- ConfigMaps**
+<br/>
+
+#
+<p style="font-weight: bold; text-align: center">Lab- ConfigMaps</p>
+
 #
 
 ConfigMap is a kubernetes object which allows you to separate cofigurations from pod and components. As a result, it keeps container portable and easier to manage by preventing harcoding of configuration data into pod definition.
@@ -1426,8 +1453,11 @@ Delete the Pod by executing below command:
 ```execute
 kubectl delete pod configmap-demo-pod
 ```
+<br/>
 
-**Lab- Secrets**
+#
+<p style="font-weight: bold; text-align: center">Lab- Secrets</p>
+
 #
 
 Kubernetes Secrets let you store and manage sensitive information, such as passwords, Auth tokens, and ssh keys. Storing confidential information in a Secret is safer and more flexible than putting it in a Pod definition or in a container image.
@@ -1615,9 +1645,11 @@ To delete the secret, execute below command:
 ```execute
 kubectl delete secret my-secret
 ```
+<br/>
 
+#
+<p style="font-weight: bold; text-align: center">Lab- Deploying Application on Kubernetes</p>
 
-**Lab- Deploying Application on Kubernetes**
 #
 
 In this section, let's take a look at how Kubernetes resources are put in combination to deploy an application so that the users are able to use it. Generally, a developer needs to perform the following steps while deploying an application.
@@ -1646,7 +1678,7 @@ cd ${WORKING_DIR}/Flask-app
 ```execute
 kubectl create namespace flask-app
 ```
-****
+
 * Create a **Deployment** with the application image.
 ```execute
 cat <<'EOF'>flask-app-deployment.yaml
@@ -1689,7 +1721,8 @@ Create this object in `flask-app` namespace.
 ```execute
 kubectl create -f flask-app-deployment.yaml -n flask-app
 ```
-****
+
+
 * Now create a service to access this application from outside the cluster. To access the application from outside, **NodePort** type to **Service** needs to be created.
 ```execute
 cat <<'EOF'>flask-app-service.yaml
@@ -1750,10 +1783,16 @@ kubectl delete namespace flask-app
 cd ..
 rm -rf Flask-app
 ```
+<br/>
 
 ### Operators
 
-**Operator overview**
+#
+
+
+<p style="font-weight: bold; text-align: center">Operator overview</p>
+
+#
 
 **What is an Operators** An Operator is a way to package, run, and maintain a Kubernetes application. It builds on Kubernetes abstractions to automate the entire lifecycle of the software it manages. Manage means an Operator can perform: scaling a complex app, application version upgrades, or even managing kernel modules for nodes in a computational cluster with specialized hardware.
 
@@ -1767,9 +1806,12 @@ The diagram shows what the operator does.
 
 The coming sections give 2 practical examples on how Operators are deployed and work-
 
----
+#
 
-**Lab- Etcd Operator**
+
+<p style="font-weight: bold; text-align: center">Lab- Etcd Operator</p>
+
+#
 
 The etcd Operator creates and maintains highly-available etcd clusters on Kubernetes, allowing engineers to easily deploy and manage etcd clusters for their applications.
 
@@ -2018,10 +2060,13 @@ Execute below command to exit out of terminal:
 ```execute
 exit
 ```
+<br/>
 
----
+#
 
-**Lab- Elastic Cloud Operator**
+<p style="font-weight: bold; text-align: center">Lab- Elastic Cloud Operator</p>
+
+#
 
 Elastic Cloud on Kubernetes automates the deployment, provisioning, management, and orchestration of Elasticsearch, Kibana and the APM Server on Kubernetes.
 
@@ -2330,12 +2375,13 @@ Once you logged in , you will see dashboard like below:
 ![](_images/kibana_login.png)
 
 
----
 
 ### What You Learned
 
-**Summary**
+#
+<p style="font-weight: bold; text-align: center">Summary</p>
 
+#
 
 **What you learned in this lab**
 
